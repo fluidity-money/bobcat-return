@@ -1,6 +1,6 @@
 [package]
 name = "bobcat-return"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
 license = "MIT"
 description = "Abstract functions for exiting the user_entrypoint Stylus entrypoint with bobcat-sdk."

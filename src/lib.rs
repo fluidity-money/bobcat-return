@@ -11,6 +11,7 @@ use bobcat_maths::{I, U};
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum EvmRd<'a> {
+    Nothing,
     Borrowed(&'a [u8]),
     Word([u8; 32]),
     Error([u8; 36]),
@@ -26,6 +27,7 @@ impl AsRef<[u8]> for EvmRd<'_> {
     #[inline]
     fn as_ref(&self) -> &[u8] {
         match self {
+            Self::Nothing => &[],
             Self::Borrowed(x) => x,
             Self::Word(x) => x,
             Self::Error(x) => x,
@@ -108,6 +110,13 @@ impl<'a> From<&'a str> for EvmRd<'a> {
     #[inline]
     fn from(x: &'a str) -> Self {
         Self::Borrowed(x.as_bytes())
+    }
+}
+
+impl From<()> for EvmRd<'_> {
+    #[inline]
+    fn from(_: ()) -> Self {
+        EvmRd::Nothing
     }
 }
 
@@ -347,6 +356,8 @@ where
     let x = x.into();
 
     match x {
+        EvmRd::Nothing => 0,
+
         EvmRd::Error(x) => {
             write_result_slice(&x);
             1
