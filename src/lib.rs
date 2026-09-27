@@ -10,6 +10,13 @@ use bobcat_entry::write_result_slice;
 use bobcat_maths::{I, U};
 
 #[derive(Debug, Clone, PartialEq)]
+pub enum Response {
+    None,
+    Word(U),
+    Address([u8; 20]),
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub enum EvmRd<'a> {
     Nothing,
     Borrowed(&'a [u8]),
@@ -117,6 +124,17 @@ impl From<()> for EvmRd<'_> {
     #[inline]
     fn from(_: ()) -> Self {
         EvmRd::Nothing
+    }
+}
+
+impl<'a> From<Response> for EvmRd<'a> {
+    #[inline]
+    fn from(x: Response) -> Self {
+        match x {
+            Response::None => Self::Nothing,
+            Response::Word(x) => x.into(),
+            Response::Address(x) => x.into(),
+        }
     }
 }
 
@@ -387,6 +405,23 @@ where
     }
 }
 
+/// Write either a successful response or an application-defined encoded revert.
+#[inline]
+pub fn bobcat_catch_all<E, X, F>(result: Result<Response, E>, encode_error: F) -> usize
+where
+    X: AsRef<[u8]>,
+    F: FnOnce(&E) -> X,
+{
+    match result {
+        Ok(response) => bobcat_return(response),
+        Err(error) => {
+            let encoded = encode_error(&error);
+            write_result_slice(encoded.as_ref());
+            1
+        }
+    }
+}
+
 #[macro_export]
 macro_rules! bobcat_rd_match {
     (
@@ -408,6 +443,42 @@ macro_rules! bobcat_rd_match {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn response_converts_to_evm_return_data() {
+        assert_eq!(EvmRd::from(Response::None), EvmRd::Nothing);
+        assert_eq!(
+            EvmRd::from(Response::Word(U::from(7u8))),
+            EvmRd::Word(U::from(7u8).0)
+        );
+
+        let address = [0x11; 20];
+        assert_eq!(
+            EvmRd::from(Response::Address(address)),
+            EvmRd::Word(U::from(address).0)
+        );
+    }
+
+    #[test]
+    fn catch_all_returns_success_for_a_response() {
+        let result: Result<Response, ()> = Ok(Response::None);
+
+        assert_eq!(0, bobcat_catch_all(result, |_| []));
+    }
+
+    #[test]
+    fn catch_all_returns_revert_for_an_encoded_error() {
+        let result: Result<Response, u8> = Err(7);
+        let mut encoded = false;
+
+        let status = bobcat_catch_all(result, |error| {
+            encoded = *error == 7;
+            [0xde, 0xad, 0xbe, 0xef]
+        });
+
+        assert!(encoded);
+        assert_eq!(1, status);
+    }
 
     #[test]
     fn test_example() {

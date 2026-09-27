@@ -7,6 +7,17 @@ Helper type and functions for returning structured data from bobcat-sdk contract
 bobcat_return(Ok(U::from(123)))
 ```
 
+Contracts with a common response enum and application-specific error encoding can use
+`bobcat_catch_all`:
+
+```rust
+use bobcat_return::{Response, bobcat_catch_all};
+
+fn write_dispatch_result(result: Result<Response, Error>) -> usize {
+    bobcat_catch_all(result, encode_error)
+}
+```
+
 A macro is provided for match statements that are common to the entrypoint decoding method:
 
 ```rust
@@ -26,3 +37,11 @@ pub unsafe extern "C" fn user_entrypoint(args_len: usize) -> usize {
     0
 }
 ```
+
+## Why is this not in bobcat-sdk?
+
+This is pretty ugly, llm generated (with human feedback), and evolving based on needs
+we've observed in our long range AI slop contract development.
+
+We don't believe in developing contracts with AI but we've been using it in contexts where
+it's safe (and there is no potential for value to be lost).
