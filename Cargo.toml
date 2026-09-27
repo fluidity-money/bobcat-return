@@ -1,6 +1,6 @@
 [package]
 name = "bobcat-return"
-version = "0.1.2"
+version = "0.1.4"
 edition = "2024"
 license = "MIT"
 description = "Abstract functions for exiting the user_entrypoint Stylus entrypoint with bobcat-sdk."
@@ -10,8 +10,9 @@ repository = "https://github.com/fluidity-money/bobcat-return"
 [dependencies]
 array-concat = ">=0.5.5"
 bobcat-cd = { version = ">=0.11.2", default-features = false }
-bobcat-entry = { version = ">=0.11.2", default-features = false, features = ["dont-define-symbols"] }
+bobcat-entry = { version = ">=0.11.2", default-features = false }
 bobcat-maths = { version = ">=0.11.2", default-features = false }
 
 [features]
 alloc = []
+dont-define-symbols = ["bobcat-entry/dont-define-symbols"]
