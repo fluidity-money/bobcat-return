@@ -387,6 +387,24 @@ where
     }
 }
 
+#[macro_export]
+macro_rules! bobcat_rd_match {
+    (
+        $value:expr;
+        $(
+            $pat:pat $(if $guard:expr)? => $body:expr
+        ),* $(,)?
+    ) => {
+        match $value {
+            $(
+                $pat $(if $guard)? => {
+                    $crate::bobcat_return($body)
+                }
+            ),*
+        }
+    };
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
