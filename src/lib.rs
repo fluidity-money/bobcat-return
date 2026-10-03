@@ -5,7 +5,7 @@ extern crate alloc;
 
 use bobcat_cd::const_keccak_sel;
 
-use bobcat_entry::write_result_slice;
+use bobcat_entry::write_slice;
 
 use bobcat_maths::{I, U};
 
@@ -377,29 +377,29 @@ where
         EvmRd::Nothing => 0,
 
         EvmRd::Error(x) => {
-            write_result_slice(&x);
+            write_slice(&x);
             1
         }
 
         EvmRd::Borrowed(x) => {
-            write_result_slice(x);
+            write_slice(x);
             0
         }
 
         EvmRd::Word(x) => {
-            write_result_slice(&x);
+            write_slice(&x);
             0
         }
 
         #[cfg(feature = "alloc")]
         EvmRd::Bytes(x) => {
-            write_result_slice(&x);
+            write_slice(&x);
             0
         }
 
         #[cfg(feature = "alloc")]
         EvmRd::String(x) => {
-            write_result_slice(x.as_bytes());
+            write_slice(x.as_bytes());
             0
         }
     }
@@ -416,7 +416,7 @@ where
         Ok(response) => bobcat_return(response),
         Err(error) => {
             let encoded = encode_error(&error);
-            write_result_slice(encoded.as_ref());
+            write_slice(encoded.as_ref());
             1
         }
     }
